@@ -1,0 +1,30 @@
+---
+// An ordered process or architecture. Stages with detail can be opened;
+// the native <details> element works with no JavaScript at all.
+import { inline } from '../lib/text';
+interface Step { name: string; detail?: string }
+interface Props { title: string; note?: string; steps: Step[]; tone?: 'before' | 'after' }
+const { title, note, steps, tone = 'after' } = Astro.props;
+// Balanced rows: up to 5 in one row, otherwise split across two rows.
+const cols = steps.length <= 5 ? steps.length : Math.ceil(steps.length / 2);
+---
+<figure class="flow" data-tone={tone} style={`--cols: ${cols}`}>
+  <figcaption set:html={inline(title)} />
+  {note && <p class="flow-note" set:html={inline(note)} />}
+  <ol class="flow-steps">
+    {steps.map((s) => (
+      <li class="flow-step">
+        {s.detail ? (
+          <details class="flow-card">
+            <summary class="flow-title" set:html={inline(s.name)} />
+            <p set:html={inline(s.detail)} />
+          </details>
+        ) : (
+          <div class="flow-card">
+            <p class="flow-title" set:html={inline(s.name)} />
+          </div>
+        )}
+      </li>
+    ))}
+  </ol>
+</figure>

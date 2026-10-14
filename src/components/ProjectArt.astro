@@ -1,0 +1,142 @@
+---
+// Decorative SVG motif for each project. Where a motif shows a count, the
+// count is real (175 local authorities, 36 schools in 7 partner groups,
+// 28 schools, 19 datasets, 22 years). Anything else is illustrative.
+interface Props { id: string }
+const { id } = Astro.props;
+
+const W = 800, H = 350;
+const C = { peri: '#1d3f8f', mint: '#2f7d6d', mist: '#7a776f', dim: '#e4e0d7', night: '#fbfaf7', night2: '#ffffff' };
+
+function rng(seed: number) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const r2 = (n: number) => Math.round(n * 10) / 10;
+let body = '';
+
+if (id === 'celllineselector') {
+  const r = rng(19);
+  const hub = { x: 420, y: 175 };
+  // 19 sources, coloured by 5 layers
+  const layerCol = [C.peri, C.mint, C.mist, '#4f6db8', '#6aa898'];
+  for (let i = 0; i < 19; i++) {
+    const x = 60 + r() * 200, y = 40 + r() * 270;
+    body += `<path d="M${r2(x)} ${r2(y)} C ${r2(x + 120)} ${r2(y)}, ${hub.x - 120} ${hub.y}, ${hub.x} ${hub.y}" stroke="${layerCol[i % 5]}" stroke-opacity=".35" fill="none" stroke-width="1.2"/>`;
+    body += `<circle cx="${r2(x)}" cy="${r2(y)}" r="${r2(4 + r() * 4)}" fill="${layerCol[i % 5]}" fill-opacity=".9"/>`;
+  }
+  body += `<circle cx="${hub.x}" cy="${hub.y}" r="22" fill="${C.night2}" stroke="${C.peri}" stroke-width="2"/><circle cx="${hub.x}" cy="${hub.y}" r="8" fill="${C.mint}"/>`;
+  // ranked output with uncertainty whiskers (illustrative)
+  for (let i = 0; i < 7; i++) {
+    const y = 70 + i * 34, len = 250 - i * 26, x0 = 500;
+    const w = 10 + i * 5;
+    body += `<path d="M${hub.x + 22} ${hub.y} C ${hub.x + 60} ${hub.y}, ${x0 - 40} ${y}, ${x0} ${y}" stroke="${C.mint}" stroke-opacity=".25" fill="none"/>`;
+    body += `<rect x="${x0}" y="${y - 7}" width="${len * 0.95}" height="14" rx="7" fill="${i === 0 ? C.mint : C.peri}" fill-opacity="${1 - i * 0.1}"/>`;
+    body += `<path d="M${x0 + len * 0.95 - w} ${y} h${w * 2} M${x0 + len * 0.95 - w} ${y - 6} v12 M${x0 + len * 0.95 + w} ${y - 6} v12" stroke="${C.night}" stroke-opacity=".7" stroke-width="1.5"/>`;
+  }
+}
+
+if (id === 'household-deprivation') {
+  // 175 authorities, 2011 vs 2021; every area lighter in 2021 (all improved).
+  const r = rng(175);
+  const cols = 15, s = 17, g = 4;
+  const vals = Array.from({ length: 175 }, () => 0.35 + r() * 0.65);
+  const grid = (ox: number, year: string, shift: number) => {
+    let out = `<text x="${ox}" y="42" fill="${C.mist}" font-size="16" font-weight="600">${year}</text>`;
+    vals.forEach((v, i) => {
+      const c = i % cols, rr = Math.floor(i / cols);
+      const val = Math.max(0.08, v - shift - r() * 0.12);
+      const col = val > 0.66 ? C.peri : val > 0.4 ? '#6d86c4' : C.dim;
+      out += `<rect x="${ox + c * (s + g)}" y="${58 + rr * (s + g)}" width="${s}" height="${s}" rx="2.5" fill="${col}" fill-opacity="${r2(0.35 + val * 0.65)}"/>`;
+    });
+    return out;
+  };
+  body = grid(60, '2011', 0) + grid(430, '2021', 0.3);
+}
+
+if (id === 'research-discourse-nlp') {
+  // 22 years, 2000–2021; the 2014–2016 transition highlighted.
+  const r = rng(24677);
+  const years = 22, x0 = 50, step = 32;
+  body += `<rect x="${x0 + 14 * step - 12}" y="30" width="${3 * step}" height="270" rx="10" fill="${C.mint}" fill-opacity=".09" stroke="${C.mint}" stroke-opacity=".4"/>`;
+  for (let yi = 0; yi < years; yi++) {
+    const x = x0 + yi * step;
+    const n = 9 + Math.round(r() * 5);
+    for (let k = 0; k < n; k++) {
+      const drift = yi / years;
+      const y = 50 + k * 19 + Math.sin(k * 1.7 + yi * 0.35) * 9 * drift + (r() - 0.5) * 6;
+      const hot = yi >= 14 && yi <= 16;
+      const col = hot ? C.mint : yi > 16 ? C.peri : C.mist;
+      body += `<circle cx="${r2(x + (r() - 0.5) * 8)}" cy="${r2(y)}" r="${r2(2.5 + r() * 3)}" fill="${col}" fill-opacity="${r2(hot ? 0.95 : 0.35 + drift * 0.55)}"/>`;
+    }
+  }
+  body += `<text x="${x0 - 6}" y="330" fill="${C.mist}" font-size="14">2000</text><text x="${x0 + 21 * step - 26}" y="330" fill="${C.mist}" font-size="14">2021</text><text x="${x0 + 14 * step - 8}" y="22" fill="${C.mint}" font-size="13">2014–16</text>`;
+}
+
+if (id === 'clinical-ml-generalisation') {
+  // Illustrative: a training distribution and a shifted deployment distribution.
+  const curve = (mu: number, sd: number, amp: number) => {
+    let d = '';
+    for (let x = 40; x <= 760; x += 8) {
+      const y = 300 - amp * Math.exp(-((x - mu) ** 2) / (2 * sd * sd));
+      d += `${x === 40 ? 'M' : 'L'}${x} ${r2(y)} `;
+    }
+    return d;
+  };
+  const a = curve(320, 85, 220), b = curve(470, 110, 170);
+  body += `<path d="${a} L760 300 L40 300 Z" fill="${C.peri}" fill-opacity=".22"/><path d="${a}" stroke="${C.peri}" stroke-width="3" fill="none"/>`;
+  body += `<path d="${b} L760 300 L40 300 Z" fill="${C.mint}" fill-opacity=".16"/><path d="${b}" stroke="${C.mint}" stroke-width="3" fill="none" stroke-dasharray="8 6"/>`;
+  body += `<path d="M40 300 H760" stroke="${C.mist}" stroke-opacity=".5"/>`;
+  body += `<path d="M320 60 C 360 30, 430 30, 470 110" stroke="${C.mist}" stroke-opacity=".6" fill="none" stroke-width="1.5" marker-end="url(#arr-${id})"/>`;
+  body += `<text x="250" y="330" fill="${C.peri}" font-size="15" font-weight="600">training</text><text x="430" y="330" fill="${C.mint}" font-size="15" font-weight="600">deployment</text>`;
+}
+
+if (id === 'problemsolvers-lab') {
+  // 36 schools grouped by 7 real partner counts around the organisation.
+  const r = rng(36);
+  const groups = [16, 11, 3, 3, 1, 1, 1];
+  const hub = { x: 400, y: 175 };
+  const centres = groups.map((_, i) => {
+    const ang = -Math.PI / 2 + (i / groups.length) * Math.PI * 2;
+    const rad = i < 2 ? 130 : 150;
+    return { x: hub.x + Math.cos(ang) * rad * 1.9, y: hub.y + Math.sin(ang) * rad * 0.72 };
+  });
+  groups.forEach((n, gi) => {
+    const c = centres[gi];
+    body += `<line x1="${hub.x}" y1="${hub.y}" x2="${r2(c.x)}" y2="${r2(c.y)}" stroke="${C.peri}" stroke-opacity=".35" stroke-width="1.5"/>`;
+    for (let k = 0; k < n; k++) {
+      const ang = k * 2.399, rad = 5 + Math.sqrt(k) * 10;
+      const x = c.x + Math.cos(ang) * rad * (n > 1 ? 1 : 0), y = c.y + Math.sin(ang) * rad * (n > 1 ? 1 : 0);
+      body += `<circle cx="${r2(x)}" cy="${r2(y)}" r="6" fill="${gi % 2 ? C.mint : C.peri}" fill-opacity="${r2(0.6 + r() * 0.4)}"/>`;
+    }
+  });
+  body += `<circle cx="${hub.x}" cy="${hub.y}" r="26" fill="${C.night2}" stroke="${C.mint}" stroke-width="2.5"/><circle cx="${hub.x}" cy="${hub.y}" r="9" fill="${C.mint}"/>`;
+}
+
+if (id === 'akanksha-school-data') {
+  // 28 schools feeding one database, then a dashboard.
+  const db = { x: 470, y: 175 };
+  for (let i = 0; i < 28; i++) {
+    const c = i % 4, rr = Math.floor(i / 4);
+    const x = 60 + c * 42, y = 50 + rr * 42;
+    body += `<path d="M${x + 12} ${y + 6} C ${x + 170} ${y + 6}, ${db.x - 170} ${db.y}, ${db.x - 40} ${db.y}" stroke="${C.peri}" stroke-opacity=".22" fill="none"/>`;
+    body += `<rect x="${x}" y="${y}" width="16" height="12" rx="2" fill="${C.mist}" fill-opacity=".85"/><path d="M${x - 1} ${y} l9 -7 l9 7z" fill="${C.peri}"/>`;
+  }
+  body += `<ellipse cx="${db.x}" cy="${db.y - 42}" rx="40" ry="12" fill="${C.peri}"/><path d="M${db.x - 40} ${db.y - 42} v84 a40 12 0 0 0 80 0 v-84" fill="${C.night2}" stroke="${C.peri}" stroke-width="2"/><path d="M${db.x - 40} ${db.y - 14} a40 12 0 0 0 80 0 M${db.x - 40} ${db.y + 14} a40 12 0 0 0 80 0" fill="none" stroke="${C.peri}" stroke-opacity=".6" stroke-width="2"/>`;
+  body += `<path d="M${db.x + 44} ${db.y} H 600" stroke="${C.mint}" stroke-width="2" marker-end="url(#arr-${id})"/>`;
+  body += `<rect x="610" y="100" width="150" height="150" rx="14" fill="${C.night2}" stroke="${C.mint}" stroke-width="2"/>`;
+  [60, 95, 45, 110, 80].forEach((h, i) => { body += `<rect x="${628 + i * 25}" y="${232 - h}" width="16" height="${h}" rx="3" fill="${i === 3 ? C.mint : C.peri}"/>`; });
+}
+---
+<svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" role="presentation" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id={`arr-${id}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10z" fill="#2f7d6d" />
+    </marker>
+  </defs>
+  <Fragment set:html={body} />
+</svg>

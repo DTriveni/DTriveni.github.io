@@ -1,0 +1,32 @@
+---
+// Scope (how big the work was) and results (what changed) are shown
+// separately, so a scale number is never read as an outcome.
+import type { Metric } from '../data/experience';
+import { inline } from '../lib/text';
+interface Props { metrics: Metric[]; headings?: boolean }
+const { metrics, headings = true } = Astro.props;
+const scope = metrics.filter((m) => m.kind === 'scope');
+const results = metrics.filter((m) => m.kind === 'result');
+const groups = [
+  { name: 'Scope', items: scope },
+  { name: 'Results', items: results },
+].filter((g) => g.items.length);
+---
+<div class="metrics">
+  {groups.map((g) => (
+    <section aria-label={g.name}>
+      {headings && <h2>{g.name}</h2>}
+      <dl class="metric-grid">
+        {g.items.map((m) => (
+          <div class="metric" data-kind={m.kind}>
+            <dt set:html={inline(m.value)} />
+            <dd>
+              <span class="metric-label" set:html={inline(m.label)} />
+              {m.context && <span class="metric-context" set:html={inline(m.context)} />}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  ))}
+</div>

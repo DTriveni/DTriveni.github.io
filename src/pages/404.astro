@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/text';
+---
+<Base title="Page not found" solidHeader>
+  <section class="contact" style="min-height: 70vh; padding-top: 10rem">
+    <div class="wrap">
+      <h2>This page doesn’t exist.</h2>
+      <p>The link may be out of date.</p>
+      <ul class="contact-links"><li><a class="btn btn-primary" href={url('/')}>Go to the home page</a></li><li><a class="btn" href={url('/#projects')}>See the work</a></li></ul>
+    </div>
+  </section>
+</Base>

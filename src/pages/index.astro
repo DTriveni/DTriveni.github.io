@@ -1,0 +1,224 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ProjectArt from '../components/ProjectArt.astro';
+import { person } from '../data/site';
+import { roles } from '../data/experience';
+import { education, awards } from '../data/education';
+import { inline, url, SHOW_GAPS } from '../lib/text';
+
+const projects = (await getCollection('projects', (p) => import.meta.env.DEV || !p.data.draft))
+  .sort((a, b) => a.data.order - b.data.order);
+const employment = ['psl-data', 'akanksha-analyst', 'tech-mahindra']
+  .map((id) => roles.find((role) => role.id === id)!)
+  .filter(Boolean);
+const leadership = roles.filter((role) => role.id === 'akanksha-board');
+const academicProjectIds = ['celllineselector', 'household-deprivation', 'research-discourse-nlp', 'clinical-ml-generalisation'];
+const academicProjects = academicProjectIds
+  .map((id) => projects.find((project) => project.id === id))
+  .filter((project) => project !== undefined);
+const mediaFeatures = [
+  { publication: 'The Better India', logo: 'https://www.google.com/s2/favicons?domain=thebetterindia.com&sz=128', title: 'From the narrow lanes of a Pune slum to the historic streets of Bristol, Triveni Dhamdhere’s journey is nothing short of extraordinary', href: 'https://x.com/thebetterindia/status/1981186314583068722' },
+  { publication: 'Pune Mirror', logo: 'https://www.google.com/s2/favicons?domain=punemirror.com&sz=128', title: 'From Pune slum to UK’s prestigious Chevening Scholarship: Triveni Dhamdhere’s remarkable journey', href: 'https://punemirror.com/city/pune/from-pune-slum-to-uks-prestigious-chevening-scholarship-triveni-dhamdheres-remarkable-journey/' },
+  { publication: 'Free Press Journal', logo: 'https://www.google.com/s2/favicons?domain=freepressjournal.in&sz=128', title: 'Triveni Dhamdhere from Pune slum becomes only woman from Maharashtra to bag UK’s Chevening Scholarship', href: 'https://www.freepressjournal.in/pune/triveni-dhamdhere-from-pune-slum-becomes-only-woman-from-maharashtra-to-bag-uks-chevening-scholarship' },
+  { publication: 'Schools of Tomorrow Summit', logo: 'https://www.schoolsoftomorrowsummit.org/_next/static/media/sot-logo.c9de3bd1.svg', title: 'Student Leaders Panel: Students as Nation Builders', details: 'How learning experiences should look like for us to be nation builders', href: 'https://www.schoolsoftomorrowsummit.org' },
+  { publication: 'Akanksha Foundation', logo: 'https://images.prismic.io/akanksha/Z8bgwBsAHJWomFkQ_Copyoflogo_ak_blk_trans-1-.png?auto=format%2Ccompress&fit=max&w=828', title: 'New Alumni Members on the Akanksha Board of Directors', date: 'October 29, 2021', href: 'https://akanksha.org/resources/blogs/at-akanksha-we-prioritize-having-alumni-members-on' },
+];
+
+const coreSkills = [
+  { name: 'Languages & Databases', skills: 'Python, R, SQL (MySQL, DuckDB), JavaScript/TypeScript, Bash' },
+  { name: 'Data Science & ML', skills: 'Pandas, NumPy, Scikit-learn, SciPy, Statistical Modeling, Bayesian Inference, Empirical Bayes, Hypothesis Testing, Uncertainty Quantification, A/B Testing, EDA, KPI Development, Feature Engineering, Regression, Correlation Analysis, Cross-Validation, Machine Learning, Deep Learning, NLP (Embeddings, Topic Modeling, Transformers), LLMs & Agentic AI (RAG, Function Calling), Root-Cause Analysis, Data Quality, Decision Support' },
+  { name: 'Data Engineering', skills: 'ETL Pipeline Design, Data Modeling, Schema Harmonisation, Entity Resolution, Data Validation, Data Cleaning, Data Standardisation, Database Management, REST APIs, Google Apps Script' },
+  { name: 'Visualisation & Deployment', skills: 'Tableau, Power BI, Matplotlib, Seaborn, Plotly, Looker Studio, Dashboard Development, AWS (Lambda, API Gateway, Bedrock), FastAPI, Flask, Django, React, Git/GitHub, Linux, LaTeX' },
+  { name: 'Other', skills: 'Stakeholder Communication, Reporting, Impact Evaluation' },
+];
+---
+<Base>
+  <div class="wrap">
+    <section class="resume-hero" id="about" aria-labelledby="hero-title">
+      <div class="resume-hero-grid">
+        <div>
+          <h1 id="hero-title">{person.name}</h1>
+          <div class="resume-socials" aria-label="Contact and profile links">
+            <a class="resume-social-link" href={`mailto:${person.email}`} aria-label={`Email ${person.name}`} title="Email">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h17v13h-17z" /><path d="m4 6 8 7 8-7" /></svg>
+            </a>
+            <a class="resume-social-link" href={person.linkedin} target="_blank" rel="me noreferrer" aria-label="LinkedIn" title="LinkedIn">
+              <img src="https://www.google.com/s2/favicons?domain=linkedin.com&sz=64" alt="" width="24" height="24" />
+            </a>
+            <a class="resume-social-link" href={person.github} target="_blank" rel="me noreferrer" aria-label="GitHub" title="GitHub">
+              <img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="" width="24" height="24" />
+            </a>
+          </div>
+        </div>
+        <blockquote class="resume-quote"><p>“I believe leadership is taking ownership, rising to challenges, uplifting those around you, and creating meaningful change. It starts within: lead yourself with courage, purpose, and discipline, and inspire others to rise with you.”</p></blockquote>
+      </div>
+    </section>
+
+    <section class="section" id="summary" aria-labelledby="summary-title">
+      <div class="section-head reveal"><h2 id="summary-title">Professional Summary</h2></div>
+      <p class="resume-summary reveal">Data professional specialising in data analytics, enterprise data integration, and technology-driven problem-solving, with a track record of transforming fragmented data into actionable insights and decision-support solutions. Built automated analytical workflows supporting 28 schools, 15,490 students, and 760+ educators, and lead data, evaluation, and impact measurement at ProblemSolvers Lab, working across 9 partner organisations, 36 schools, and 800+ students. Currently pursuing an MSc in Data Science at the University of Bristol, with expertise in Python, SQL, statistical modelling, APIs, data visualisation, Bayesian methods, NLP, and machine learning.</p>
+    </section>
+
+    <section class="section" id="education" aria-labelledby="education-title">
+      <div class="section-head reveal"><h2 id="education-title">Education</h2></div>
+      <ul class="records resume-records">
+        {education.map((item) => (
+          <li class="reveal">
+            <div>
+              <h3>{item.institution}</h3>
+              <p>{item.qualification}{item.notes.length ? ` · ${item.notes.join(' · ')}` : ''}{item.institution === 'University of Bristol' ? ' · Expected First Class with Distinction' : ''}</p>
+            </div>
+            <span class="meta">{item.when}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="section" id="achievements" aria-labelledby="achievements-title">
+      <div class="section-head reveal"><h2 id="achievements-title">Achievements</h2></div>
+      <ul class="resume-awards achievement-list">
+        {awards.map((award) => (
+          <li class="reveal">
+            <div class="achievement-heading">
+              <div class="achievement-identity">
+                {award.logos && (
+                  <span class="achievement-logos">
+                    {award.logos.map((logo) => <img src={logo.src} alt={logo.alt} width="48" height="48" loading="lazy" />)}
+                  </span>
+                )}
+                <strong>{award.title}</strong>
+              </div>
+              <span class="meta">{award.when}</span>
+            </div>
+            <p>{award.body}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="section" id="featured" aria-labelledby="featured-title">
+      <div class="section-head reveal"><h2 id="featured-title">Featured In</h2></div>
+      <ul class="featured-tiles">
+        {mediaFeatures.map((feature) => (
+          <li class="reveal">
+            <a class="featured-tile" href={feature.href} target="_blank" rel="noreferrer">
+              <span class="featured-source">
+                <img class="featured-logo" src={feature.logo} alt="" width="48" height="48" loading="lazy" />
+                <span class="featured-publication">{feature.publication}</span>
+              </span>
+              <span class="featured-headline">{feature.title}</span>
+              {(feature.details || feature.date) && (
+                <span class="featured-detail">{feature.details}{feature.date ? ` · ${feature.date}` : ''}</span>
+              )}
+              <span class="featured-read">Read feature <span aria-hidden="true">↗</span></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="section" id="experience" aria-labelledby="experience-title">
+      <div class="section-head reveal"><h2 id="experience-title">Professional Experience</h2></div>
+      <ol class="resume-list">
+        {employment.map((role) => (
+          <li class="resume-entry reveal" id={role.id}>
+            <div class="resume-date meta">{role.start} – {role.end}</div>
+            <div class="resume-entry-content">
+              <div class="resume-entry-head">
+                <div><h3>{role.role}</h3><p class="resume-org">{role.org}{role.location ? ` · ${role.location}` : ''}</p></div>
+                <span class="meta">{role.id === 'psl-data' ? 'Part-time Consultant' : 'Full-time'}</span>
+              </div>
+              <ul class="resume-bullets">
+                {role.accomplishments.map((item) => <li set:html={inline(item)} />)}
+              </ul>
+              {role.metrics?.length && (
+                <p class="resume-metrics">
+                  {role.metrics.map((metric, index) => <span>{metric.value} {metric.label}{index < role.metrics!.length - 1 ? ' · ' : ''}</span>)}
+                </p>
+              )}
+              {role.projects?.map((project) => <a class="resume-link" href={url(project.href)}>{project.label}</a>)}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="section" id="leadership" aria-labelledby="leadership-title">
+      <div class="section-head reveal"><h2 id="leadership-title">Leadership Experience</h2></div>
+      <ol class="resume-list">
+        {leadership.map((role) => (
+          <li class="resume-entry reveal" id={role.id}>
+            <div class="resume-date meta">{role.start} – {role.end}</div>
+            <div class="resume-entry-content">
+              <div class="resume-entry-head">
+                <div><h3>{role.role}</h3><p class="resume-org">{role.org}{role.location ? ` · ${role.location}` : ''}</p></div>
+                <span class="meta">{role.kind}</span>
+              </div>
+              <ul class="resume-bullets">
+                {role.accomplishments.map((item) => <li set:html={inline(item)} />)}
+              </ul>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="section" id="projects" aria-labelledby="projects-title">
+      <div class="section-head reveal"><h2 id="projects-title">Academic Projects</h2><p class="meta">University of Bristol · 2026</p></div>
+      <ol class="academic-projects">
+        {academicProjects.map((project) => (
+          <li class="academic-project reveal">
+            <a class="academic-project-visual" href={url(`/projects/${project.id}/`)} aria-label={`View ${project.data.shortTitle} project`}>
+              <span class="academic-project-art" role="img" aria-label={`${project.data.shortTitle} project diagram`}>
+                <ProjectArt id={project.id} />
+              </span>
+            </a>
+            <div class="academic-project-content">
+              <div class="academic-project-heading">
+                <h3><a href={url(`/projects/${project.id}/`)} set:html={inline(project.data.title)} /></h3>
+                <span class="contents-meta"><span set:html={inline(project.data.type)} /><br />{project.data.year}{project.data.grade && <><br />Grade: {project.data.grade}</>}<br />{project.data.status && <span class="status" data-kind={project.data.status.kind}>{project.data.status.label}</span>}</span>
+              </div>
+              <p class="contents-summary" set:html={inline(project.data.summary)} />
+              <ul class="project-resources" aria-label={`${project.data.shortTitle} links`}>
+                {project.data.links.filter((link) => SHOW_GAPS || link.href !== '#').map((link) => (
+                  <li>
+                    {link.href === '#'
+                      ? <span class="project-resource-pending" set:html={inline(link.label)} />
+                      : <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label}</a>}
+                  </li>
+                ))}
+              </ul>
+              <a class="resume-link" href={url(`/projects/${project.id}/`)}>Read project details</a>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="section" id="skills" aria-labelledby="skills-title">
+      <div class="section-head reveal"><h2 id="skills-title">Core Skills</h2></div>
+      <dl class="toolkit resume-skills reveal">
+        {coreSkills.map((group) => <div><dt>{group.name}</dt><dd>{group.skills}</dd></div>)}
+      </dl>
+    </section>
+
+    <section class="contact" id="contact" aria-labelledby="contact-title">
+      <div class="contact-grid">
+        <div class="reveal">
+          <h2 id="contact-title">Let’s talk.</h2>
+          <p class="prose-lg">I am open to roles in data analytics, data engineering, consulting, and data science and AI.</p>
+          <a class="contact-email" href={`mailto:${person.email}`}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h17v13h-17z" /><path d="m4 6 8 7 8-7" /></svg>
+            <span>{person.email}</span>
+          </a>
+        </div>
+        <dl class="contact-list reveal">
+          <div><dt>LinkedIn</dt><dd><a class="contact-profile-link" href={person.linkedin} target="_blank" rel="me noreferrer"><img src="https://www.google.com/s2/favicons?domain=linkedin.com&sz=64" alt="" width="20" height="20" />{person.linkedinLabel}</a></dd></div>
+          <div><dt>GitHub</dt><dd><a class="contact-profile-link" href={person.github} target="_blank" rel="me noreferrer"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="" width="20" height="20" />{person.githubLabel}</a></dd></div>
+        </dl>
+      </div>
+    </section>
+
+  </div>
+</Base>

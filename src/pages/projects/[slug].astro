@@ -1,0 +1,92 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Metrics from '../../components/Metrics.astro';
+import Flow from '../../components/Flow.astro';
+import ProjectArt from '../../components/ProjectArt.astro';
+import { inline, url, SHOW_GAPS } from '../../lib/text';
+
+export async function getStaticPaths() {
+  const all = (await getCollection('projects', (p) => import.meta.env.DEV || !p.data.draft))
+    .sort((a, b) => a.data.order - b.data.order);
+  return all.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, prev: all[i - 1], next: all[i + 1] },
+  }));
+}
+
+const { project, prev, next } = Astro.props;
+const d = project.data;
+const { Content, headings } = await render(project);
+const toc = headings.filter((h) => h.depth === 2);
+if (d.reflection) toc.push({ depth: 2, slug: 'what-i-learned', text: 'What I learned' });
+// Links still waiting on confirmation (href '#') are hidden on the live site.
+const links = d.links.filter((l) => SHOW_GAPS || l.href !== '#');
+---
+<Base title={d.shortTitle} description={d.summary} type="article" solidHeader>
+  <div class="wrap">
+    <a class="back-link" href={url('/#projects')}>Back to all work</a>
+    <div class="case-hero">
+      <figure class="case-art">
+        <ProjectArt id={project.id} />
+      </figure>
+      <header class="case-head">
+        <p class="label" set:html={inline(`${d.type}, ${d.year}`)} />
+        <h1 set:html={inline(d.title)} />
+        {d.status && <span class="status" data-kind={d.status.kind}>{d.status.label}</span>}
+      </header>
+      <p class="case-summary" set:html={inline(d.summary)} />
+    </div>
+  </div>
+
+  <article class="wrap">
+    {SHOW_GAPS && d.openQuestions.length > 0 && (
+      <aside class="open-questions" aria-labelledby="open-q">
+        <h2 id="open-q">To confirm before publishing (visible in local preview only)</h2>
+        <ul>{d.openQuestions.map((q) => <li set:html={inline(q)} />)}</ul>
+      </aside>
+    )}
+
+    {d.metrics.length > 0 && <Metrics metrics={d.metrics} />}
+
+    {d.flows.map((f) => <Flow title={f.title} note={f.note} steps={f.steps} tone={f.tone} />)}
+
+    <div class="case-grid">
+      <div class="prose">
+        <Content />
+        {d.reflection && (
+          <>
+            <h2 id="what-i-learned">What I learned</h2>
+            <p>{d.reflection}</p>
+          </>
+        )}
+      </div>
+      <aside class="case-aside" aria-label="Project facts">
+        {(d.role || d.status || d.stack.length > 0) && (
+        <dl>
+          {d.role && <div><dt>Role</dt><dd set:html={inline(d.role)} /></div>}
+          <div><dt>When</dt><dd>{d.year}</dd></div>
+          {d.status && <div><dt>Status</dt><dd>{d.status.label}</dd></div>}
+          {d.stack.length > 0 && (
+            <div><dt>Methods and tools</dt><dd><ul>{d.stack.map((s) => <li set:html={inline(s)} />)}</ul></dd></div>
+          )}
+          {links.length > 0 && (
+            <div><dt>Links</dt><dd>{links.map((l) => l.href === '#' ? <p set:html={inline(l.label)} /> : <p><a href={l.href}>{l.label}</a></p>)}</dd></div>
+          )}
+        </dl>
+        )}
+        {toc.length > 0 && (
+          <nav aria-label="On this page">
+            <h2>On this page</h2>
+            <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+          </nav>
+        )}
+      </aside>
+    </div>
+
+    <nav class="pager" aria-label="More case studies">
+      <div>{prev ? <a href={url(`/projects/${prev.id}/`)}><span>Previous</span>{prev.data.shortTitle}</a> : <a href={url('/#projects')}><span>Back to</span>All work</a>}</div>
+      <div class="next">{next ? <a href={url(`/projects/${next.id}/`)}><span>Next</span>{next.data.shortTitle}</a> : <a href={url('/#projects')}><span>Back to</span>All work</a>}</div>
+    </nav>
+  </article>
+</Base>
