@@ -18,10 +18,12 @@ export const person = {
 
 // Anchors on the home page. Case-study pages link back to them.
 export const nav = [
-  { href: '/#summary', label: 'Summary' },
-  { href: '/#featured', label: 'Featured' },
-  { href: '/#experience', label: 'Experience' },
-  { href: '/#projects', label: 'Projects' },
-  { href: '/#skills', label: 'Skills' },
-  { href: '/#contact', label: 'Contact' },
+  { href: '/#education', label: 'Education', icon: '▣' },
+  { href: '/#achievements', label: 'Achievements', icon: '✧' },
+  { href: '/#featured', label: 'Featured', icon: '✦' },
+  { href: '/#experience', label: 'Experience', icon: '▤' },
+  { href: '/#leadership', label: 'Leadership', icon: '◇' },
+  { href: '/#projects', label: 'Projects', icon: '▧' },
+  { href: '/#skills', label: 'Skills', icon: '⌘' },
+  { href: '/#contact', label: 'Contact', icon: '↗' },
 ];

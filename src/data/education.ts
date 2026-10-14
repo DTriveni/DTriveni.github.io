@@ -1,6 +1,7 @@
 export const education = [
   {
     institution: 'University of Bristol',
+    logo: 'https://www.google.com/s2/favicons?domain=bristol.ac.uk&sz=128',
     qualification: 'MSc Data Science',
     when: 'September 2026',
     notes: ['Chevening Scholar', 'Think Big Scholar'],
@@ -15,6 +16,7 @@ export const education = [
   },
   {
     institution: 'Savitribai Phule Pune University – DOT',
+    logo: '/images/sppu-crest.jpg',
     qualification: 'PG Diploma in Data Science and AI',
     when: '2023',
     notes: ['GPA 9.4/10'],
@@ -23,6 +25,7 @@ export const education = [
   },
   {
     institution: 'Azim Premji University',
+    logo: 'https://www.google.com/s2/favicons?domain=azimpremjiuniversity.edu.in&sz=128',
     qualification: 'BSc Physics (Honours)',
     when: '2018',
     notes: ['GPA 7.25/10'],

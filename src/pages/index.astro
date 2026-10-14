@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import ProjectArt from '../components/ProjectArt.astro';
+import WelcomeIllustration from '../components/WelcomeIllustration.astro';
 import { person } from '../data/site';
 import { roles } from '../data/experience';
 import { education, awards } from '../data/education';
@@ -34,11 +35,15 @@ const coreSkills = [
 ];
 ---
 <Base>
-  <div class="wrap">
-    <section class="resume-hero" id="about" aria-labelledby="hero-title">
+  <div class="wrap dashboard-page">
+    <section class="resume-hero" id="welcome" aria-labelledby="hero-title">
       <div class="resume-hero-grid">
-        <div>
-          <h1 id="hero-title">{person.name}</h1>
+        <div class="welcome-copy">
+          <p class="welcome-kicker">WELCOME TO MY WEBSITE</p>
+          <h1 id="hero-title">Hi, I’m Triveni <span class="welcome-art"><WelcomeIllustration /></span></h1>
+          <p class="welcome-intro">Data professional specialising in data analytics, enterprise data integration, and technology-driven problem-solving, with a track record of transforming fragmented data into actionable insights and decision-support solutions. Built automated analytical workflows supporting 28 schools, 15,490 students, and 760+ educators, and lead data, evaluation, and impact measurement at ProblemSolvers Lab, working across 9 partner organisations, 36 schools, and 800+ students. Currently pursuing an MSc in Data Science at the University of Bristol, with expertise in Python, SQL, statistical modelling, APIs, data visualisation, Bayesian methods, NLP, and machine learning.</p>
+          <blockquote class="resume-quote welcome-quote"><p>“I believe leadership is taking ownership, rising to challenges, uplifting those around you, and creating meaningful change. It starts within: lead yourself with courage, purpose, and discipline, and inspire others to rise with you.”</p></blockquote>
+          <a class="welcome-action" href="#projects">Explore my work <span aria-hidden="true">→</span></a>
           <div class="resume-socials" aria-label="Contact and profile links">
             <a class="resume-social-link" href={`mailto:${person.email}`} aria-label={`Email ${person.name}`} title="Email">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h17v13h-17z" /><path d="m4 6 8 7 8-7" /></svg>
@@ -51,13 +56,7 @@ const coreSkills = [
             </a>
           </div>
         </div>
-        <blockquote class="resume-quote"><p>“I believe leadership is taking ownership, rising to challenges, uplifting those around you, and creating meaningful change. It starts within: lead yourself with courage, purpose, and discipline, and inspire others to rise with you.”</p></blockquote>
       </div>
-    </section>
-
-    <section class="section" id="summary" aria-labelledby="summary-title">
-      <div class="section-head reveal"><h2 id="summary-title">Professional Summary</h2></div>
-      <p class="resume-summary reveal">Data professional specialising in data analytics, enterprise data integration, and technology-driven problem-solving, with a track record of transforming fragmented data into actionable insights and decision-support solutions. Built automated analytical workflows supporting 28 schools, 15,490 students, and 760+ educators, and lead data, evaluation, and impact measurement at ProblemSolvers Lab, working across 9 partner organisations, 36 schools, and 800+ students. Currently pursuing an MSc in Data Science at the University of Bristol, with expertise in Python, SQL, statistical modelling, APIs, data visualisation, Bayesian methods, NLP, and machine learning.</p>
     </section>
 
     <section class="section" id="education" aria-labelledby="education-title">
@@ -66,7 +65,10 @@ const coreSkills = [
         {education.map((item) => (
           <li class="reveal">
             <div>
-              <h3>{item.institution}</h3>
+              <div class="education-institution">
+                <img src={item.logo} alt="" width="40" height="40" loading="lazy" />
+                <h3>{item.institution}</h3>
+              </div>
               <p>{item.qualification}{item.notes.length ? ` · ${item.notes.join(' · ')}` : ''}{item.institution === 'University of Bristol' ? ' · Expected First Class with Distinction' : ''}</p>
             </div>
             <span class="meta">{item.when}</span>
@@ -208,15 +210,12 @@ const coreSkills = [
         <div class="reveal">
           <h2 id="contact-title">Let’s talk.</h2>
           <p class="prose-lg">I am open to roles in data analytics, data engineering, consulting, and data science and AI.</p>
-          <a class="contact-email" href={`mailto:${person.email}`}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h17v13h-17z" /><path d="m4 6 8 7 8-7" /></svg>
-            <span>{person.email}</span>
-          </a>
+          <dl class="contact-list">
+            <div><dt>LinkedIn</dt><dd><a class="contact-profile-link" href={person.linkedin} target="_blank" rel="me noreferrer"><img src="https://www.google.com/s2/favicons?domain=linkedin.com&sz=64" alt="" width="20" height="20" />{person.linkedinLabel}</a></dd></div>
+            <div><dt>GitHub</dt><dd><a class="contact-profile-link" href={person.github} target="_blank" rel="me noreferrer"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="" width="20" height="20" />{person.githubLabel}</a></dd></div>
+            <div><dt>Email</dt><dd><a class="contact-profile-link contact-email" href={`mailto:${person.email}`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h17v13h-17z" /><path d="m4 6 8 7 8-7" /></svg>{person.email}</a></dd></div>
+          </dl>
         </div>
-        <dl class="contact-list reveal">
-          <div><dt>LinkedIn</dt><dd><a class="contact-profile-link" href={person.linkedin} target="_blank" rel="me noreferrer"><img src="https://www.google.com/s2/favicons?domain=linkedin.com&sz=64" alt="" width="20" height="20" />{person.linkedinLabel}</a></dd></div>
-          <div><dt>GitHub</dt><dd><a class="contact-profile-link" href={person.github} target="_blank" rel="me noreferrer"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="" width="20" height="20" />{person.githubLabel}</a></dd></div>
-        </dl>
       </div>
     </section>
 

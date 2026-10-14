@@ -4,14 +4,19 @@ import { url } from '../lib/text';
 interface Props { solid?: boolean }
 ---
 <header class="site-header">
-  <div class="wrap">
-    <a class="brand" href={url('/')}>{person.name}</a>
+  <div class="sidebar-inner">
+    <a class="sidebar-brand" href={url('/#welcome')} aria-label={`${person.name} home`}>
+      <span class="brand-monogram" aria-hidden="true">TD</span>
+      <span class="brand-copy"><strong>Triveni Dhamdhere</strong><small>Personal Dashboard</small></span>
+    </a>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
     <nav class="site-nav" id="site-nav" aria-label="Main" data-open="false">
+      <span class="sidebar-caption">Explore</span>
       <ul class="nav-list">
-        {nav.map((item) => <li><a href={url(item.href)}>{item.label}</a></li>)}
+        {nav.map((item) => <li><a href={url(item.href)}><span class="nav-icon" aria-hidden="true">{item.icon}</span>{item.label}</a></li>)}
       </ul>
     </nav>
+    <div class="sidebar-footer"><span class="sidebar-footer-dot"></span>Open to meaningful work</div>
   </div>
 </header>
 <script>
@@ -24,9 +29,114 @@ interface Props { solid?: boolean }
       navEl.dataset.open = String(open);
     };
     toggle.addEventListener('click', () => set(toggle.getAttribute('aria-expanded') !== 'true'));
-    navEl.addEventListener('click', (e) => { if ((e.target as HTMLElement).tagName === 'A') set(false); });
+    navEl.addEventListener('click', (e) => {
+      const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a');
+      if (!link) return;
+      set(false);
+      navEl.querySelectorAll<HTMLAnchorElement>('a').forEach((item) => item.removeAttribute('aria-current'));
+      link.setAttribute('aria-current', 'page');
+    });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') { set(false); toggle.focus(); }
     });
+  }
+
+  const dashboard = document.querySelector<HTMLElement>('.dashboard-page');
+  const dashboardSections = dashboard
+    ? [...dashboard.querySelectorAll<HTMLElement>(':scope > section[id]')]
+    : [];
+  if (dashboard && dashboardSections.length) {
+    const activateSection = (id: string) => {
+      const activeSection = dashboardSections.find((section) => section.id === id)
+        ?? dashboardSections[0];
+      dashboard.dataset.activeSection = activeSection.id;
+      dashboardSections.forEach((section) => {
+        const active = section === activeSection;
+        section.classList.toggle('is-active', active);
+        section.setAttribute('aria-hidden', String(!active));
+      });
+      navEl?.querySelectorAll<HTMLAnchorElement>('a').forEach((link) => {
+        const href = new URL(link.href, location.href);
+        link.toggleAttribute('aria-current', href.hash === `#${activeSection.id}`);
+      });
+    };
+    const moveSection = (direction: -1 | 1) => {
+      const currentIndex = dashboardSections.findIndex((section) => section.classList.contains('is-active'));
+      const nextSection = dashboardSections[currentIndex + direction];
+      if (!nextSection) return false;
+      history.pushState(null, '', `#${nextSection.id}`);
+      activateSection(nextSection.id);
+      return true;
+    };
+
+    dashboard.classList.add('is-ready');
+    activateSection(location.hash.slice(1) || 'welcome');
+    document.addEventListener('click', (event) => {
+      const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a');
+      if (!link) return;
+      const destination = new URL(link.href, location.href);
+      if (destination.origin !== location.origin || destination.pathname !== location.pathname) return;
+      const sectionId = decodeURIComponent(destination.hash.slice(1));
+      if (!dashboardSections.some((section) => section.id === sectionId)) return;
+      event.preventDefault();
+      if (location.hash !== destination.hash) history.pushState(null, '', destination.hash);
+      activateSection(sectionId);
+      if (navEl?.contains(link)) {
+        const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+        toggle?.setAttribute('aria-expanded', 'false');
+        if (toggle) toggle.textContent = 'Menu';
+        navEl.dataset.open = 'false';
+      }
+    });
+
+    let lastPanelChange = 0;
+    const canChangePanel = () => {
+      const now = Date.now();
+      if (now - lastPanelChange < 650) return false;
+      lastPanelChange = now;
+      return true;
+    };
+    dashboard.addEventListener('wheel', (event) => {
+      const activeSection = dashboardSections.find((section) => section.classList.contains('is-active'));
+      if (!activeSection || event.deltaY === 0) return;
+
+      if (activeSection.id === 'welcome') {
+        if (canChangePanel() && moveSection(event.deltaY > 0 ? 1 : -1)) event.preventDefault();
+        return;
+      }
+
+      const atTop = activeSection.scrollTop <= 1;
+      const atBottom = activeSection.scrollTop + activeSection.clientHeight >= activeSection.scrollHeight - 1;
+      const atScrollEdge = event.deltaY > 0 ? atBottom : atTop;
+      if (atScrollEdge && canChangePanel() && moveSection(event.deltaY > 0 ? 1 : -1)) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+    let touchStartY = 0;
+    dashboard.addEventListener('touchstart', (event) => {
+      touchStartY = event.changedTouches[0]?.clientY ?? 0;
+    }, { passive: true });
+    dashboard.addEventListener('touchend', (event) => {
+      const activeSection = dashboardSections.find((section) => section.classList.contains('is-active'));
+      if (!activeSection) return;
+      const touchEndY = event.changedTouches[0]?.clientY ?? touchStartY;
+      const deltaY = touchStartY - touchEndY;
+      if (Math.abs(deltaY) < 45) return;
+
+      if (activeSection.id === 'welcome') {
+        if (canChangePanel()) moveSection(deltaY > 0 ? 1 : -1);
+        return;
+      }
+
+      const atTop = activeSection.scrollTop <= 1;
+      const atBottom = activeSection.scrollTop + activeSection.clientHeight >= activeSection.scrollHeight - 1;
+      const atScrollEdge = deltaY > 0 ? atBottom : atTop;
+      if (atScrollEdge && canChangePanel()) moveSection(deltaY > 0 ? 1 : -1);
+    }, { passive: true });
+
+    const activateFromLocation = () => activateSection(location.hash.slice(1) || 'welcome');
+    window.addEventListener('hashchange', activateFromLocation);
+    window.addEventListener('popstate', activateFromLocation);
   }
 </script>
