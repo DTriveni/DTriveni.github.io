@@ -100,11 +100,6 @@ interface Props { solid?: boolean }
       const activeSection = dashboardSections.find((section) => section.classList.contains('is-active'));
       if (!activeSection || event.deltaY === 0) return;
 
-      if (activeSection.id === 'welcome') {
-        if (canChangePanel() && moveSection(event.deltaY > 0 ? 1 : -1)) event.preventDefault();
-        return;
-      }
-
       const atTop = activeSection.scrollTop <= 1;
       const atBottom = activeSection.scrollTop + activeSection.clientHeight >= activeSection.scrollHeight - 1;
       const atScrollEdge = event.deltaY > 0 ? atBottom : atTop;
@@ -123,11 +118,6 @@ interface Props { solid?: boolean }
       const touchEndY = event.changedTouches[0]?.clientY ?? touchStartY;
       const deltaY = touchStartY - touchEndY;
       if (Math.abs(deltaY) < 45) return;
-
-      if (activeSection.id === 'welcome') {
-        if (canChangePanel()) moveSection(deltaY > 0 ? 1 : -1);
-        return;
-      }
 
       const atTop = activeSection.scrollTop <= 1;
       const atBottom = activeSection.scrollTop + activeSection.clientHeight >= activeSection.scrollHeight - 1;
