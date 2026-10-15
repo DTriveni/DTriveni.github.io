@@ -89,11 +89,33 @@ interface Props { solid?: boolean }
       }
     });
 
+    // A panel only changes after a deliberate push at the edge: the first
+    // arrival at an edge (including trackpad momentum) is absorbed, then a
+    // sustained scroll is needed, so panels never flip by accident.
+    const EDGE_PAUSE_MS = 500;
+    const WHEEL_THRESHOLD = 160;
+    const COOLDOWN_MS = 900;
     let lastPanelChange = 0;
-    const canChangePanel = () => {
+    let edgeSince = 0;
+    let pushed = 0;
+    let lastWheel = 0;
+    let hingeSection = '';
+    const resetHinge = () => { edgeSince = 0; pushed = 0; };
+    const hingeAllows = (delta: number) => {
       const now = Date.now();
-      if (now - lastPanelChange < 650) return false;
+      if (dashboard.dataset.activeSection !== hingeSection) {
+        hingeSection = dashboard.dataset.activeSection ?? '';
+        resetHinge();
+      }
+      if (now - lastPanelChange < COOLDOWN_MS) return false;
+      if (now - lastWheel > 250) pushed = 0;
+      lastWheel = now;
+      if (!edgeSince) edgeSince = now;
+      if (now - edgeSince < EDGE_PAUSE_MS) return false;
+      pushed += delta;
+      if (Math.abs(pushed) < WHEEL_THRESHOLD) return false;
       lastPanelChange = now;
+      resetHinge();
       return true;
     };
     dashboard.addEventListener('wheel', (event) => {
@@ -103,9 +125,9 @@ interface Props { solid?: boolean }
       const atTop = activeSection.scrollTop <= 1;
       const atBottom = activeSection.scrollTop + activeSection.clientHeight >= activeSection.scrollHeight - 1;
       const atScrollEdge = event.deltaY > 0 ? atBottom : atTop;
-      if (atScrollEdge && canChangePanel() && moveSection(event.deltaY > 0 ? 1 : -1)) {
-        event.preventDefault();
-      }
+      if (!atScrollEdge) { resetHinge(); return; }
+      event.preventDefault();
+      if (hingeAllows(event.deltaY)) moveSection(event.deltaY > 0 ? 1 : -1);
     }, { passive: false });
 
     let touchStartY = 0;
@@ -122,7 +144,10 @@ interface Props { solid?: boolean }
       const atTop = activeSection.scrollTop <= 1;
       const atBottom = activeSection.scrollTop + activeSection.clientHeight >= activeSection.scrollHeight - 1;
       const atScrollEdge = deltaY > 0 ? atBottom : atTop;
-      if (atScrollEdge && canChangePanel()) moveSection(deltaY > 0 ? 1 : -1);
+      if (atScrollEdge && Date.now() - lastPanelChange >= COOLDOWN_MS) {
+        lastPanelChange = Date.now();
+        moveSection(deltaY > 0 ? 1 : -1);
+      }
     }, { passive: true });
 
     const activateFromLocation = () => activateSection(location.hash.slice(1) || 'welcome');
