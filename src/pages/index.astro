@@ -163,7 +163,6 @@ const coreSkills = [
             <div class="resume-entry-content">
               <div class="resume-entry-head">
                 <div><h3>{role.role}</h3><p class="resume-org">{role.org}{role.location ? ` · ${role.location}` : ''}</p></div>
-                <span class="meta">{role.kind}</span>
               </div>
               <ul class="resume-bullets">
                 {role.accomplishments.map((item) => <li set:html={inline(item)} />)}
